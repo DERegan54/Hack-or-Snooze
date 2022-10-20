@@ -2,6 +2,8 @@
 
 const BASE_URL = "https://hack-or-snooze-v3.herokuapp.com";
 
+
+
 /******************************************************************************
  * Story: a single story in the system
  */
@@ -24,8 +26,7 @@ class Story {
   /** Parses hostname out of URL and returns it. */
 
   getHostName() {
-    // UNIMPLEMENTED: complete this function!
-    return "hostname.com";
+    return new URL (this.url).host;
   }
 }
 
@@ -73,29 +74,48 @@ class StoryList {
    * Returns the new Story instance
    */
   
-  // line  86: defining addStory() with arguments user and newStory, which is sending story data to the backend API
-  // line  87: grabbing the user's login token and saving to the variable, "token"
-  // line  88: extracting newStory values of title, author, and url via destructuring
-  // line  89: making the post request to the API
-  // line  90: specifying where to send the request (url of the API with correct endpoint) 
-  // line  91: specifying method of request as "POST"
-  // line  92: specifying the data to be sent with the post request (user's token and user's story)
-  // line  94: extracting the storyId and createdAt values from the API's response via destructuring
-  // line  95: creating a new instance of Story and saving it to the variable, 'userStory'
-  // line  97: returning the new instance of Story just posted
-  async addStory(user, newStory) {
-      const {username} = user;
-      const {author, title, url} = newStory;
+  
+  ///////////// WORKING!!!//////////
+  async addStory(user, { author, title, url }) {
+      const token = user.loginToken;
       const response = await axios({
         url: `${BASE_URL}/stories`,
         method: 'POST',
-        data: {token: user.loginToken, story: {title, author, url}}
+        data: {token, story: { author, title, url } },
       });
-      const {storyId, createdAt} = response;
-    const userStory = new Story({storyId, title, author, url, username, createdAt});
+    
+    const story = new Story(response.data.story);
+    this.stories.unshift(story);
+    user.ownStories.unshift(story)
    
-    return userStory;
+    return story;
   }
+
+  /** Delete story from API and remove from the story lists.
+   *
+   * - user: the current User instance
+   * - storyId: the ID of the story you want to remove
+   */
+  
+  // this method makes a "delete" request to the API and removes the article 
+  // via the storyId that was generated when it was posted by the user
+  async removeStory(user, storyId) {
+    const token = user.loginToken;
+    await axios({
+      url: `${BASE_URL}/stories/${storyId}`,
+      method: "DELETE",
+      data: {token: user.loginToken}
+    });
+
+    // filter out the story whose ID we are removing
+    this.stories = this.stories.filter(story => story.storyId !== storyId);
+    
+    // do the same thing for the user's list of stories and thier favorites
+    user.ownStories = user.ownStories.filter(s => s.storyId !== storyId);
+    user.favorites = user.favorites.filter(s => s.storyId !== storyId)
+
+  }
+  
 }
 
 
@@ -130,6 +150,8 @@ class User {
     this.loginToken = token;
   }
 
+
+  
   /** Register new user in API, make User instance & return it.
    *
    * - username: a new username
@@ -215,28 +237,30 @@ class User {
     }
   }
 
-  async addToFavorites(story) {
-    const token = this.loginToken;
+  // this method makes a "post" request to the API, adding the selected article to the
+  // user's "favorites" list 
+  async addToFavorites(storyId) {
+    await axios.post(
+      `${BASE_URL}/users/${this.username}/favorites/${storyId}`,
+      {token: this.loginToken}
+    );
+    const newFavorite = storyList.stories.find((story) => story.storyId === storyId);
+    this.favorites.push(newFavorite);
+  }
+
+
+  // // this method makes a "delete" request to the API, removing the selected article from the
+  // user's "favorites" list 
+  async removeFromFavorites(storyId) {
     await axios({
-        url: `${BASE_URL}/users/${username}/favorites/${story.storyId}`,
-        method: "POST",
-        data: { token }
+      method: 'delete',
+      url: `${BASE_URL}/users/${this.username}/favorites/${storyId}`,
+      data: {token: this.loginToken}
     });
-    this.favorites.push(story);
+    const favoriteToBeRemoved = this.favorites.find((story) => story.storyId === storyId);
+    const index = this.favorites.indexOf(favoriteToBeRemoved);
+    this.favorites.splice(index, 1);
   }
 
-  async removeFromFavorite(story) {
-    const token = this.loginToken;
-    await axios({
-      url: `${BASE_URL}/users/${username}/favorites/${storyId}`,
-      method: "DELETE",
-      data: { token }
-       });
-       this.favorites = this.favorites.filter((s) => s.storyId !== story.storyId);
-  }
-
-  isFavorite(story) {
-    return this.favorites.some((s) => s.storyId === story.storyId);
-  }
 
 }

@@ -1,13 +1,18 @@
 /* General typography */
 
 body {
-  font-family: Arimo, sans-serif;
+  font-family: monospace;
   margin: 8px 7.5vw;
+  background-color:lightcoral;
 }
 
 h1 {
   font-size: 1.1rem;
   margin: 0;
+}
+
+h2 {
+  text-decoration: underline;
 }
 
 h4 {
@@ -42,7 +47,8 @@ button:hover {
   display: flex;
   flex-direction: column;
   align-self: center;
-  background-color: #f6f6ef;
+  border-radius: 20px;
+  background-color: lightpink;
 }
 
 .hidden {
@@ -51,6 +57,7 @@ button:hover {
 
 
 /* Forms */
+
 
 form {
   display: flex;
@@ -67,7 +74,7 @@ form label {
   font-weight: 700;
   display: inline-block;
   width: 3.5rem;
-  text-align: right;
+  text-align: left;
   margin-right: 5px;
 }
 

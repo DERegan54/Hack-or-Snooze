@@ -19,12 +19,15 @@ async function getAndShowStoriesOnStart() {
  * Returns the markup for the story.
  */
 
-function generateStoryMarkup(story) {
+ function generateStoryMarkup(story) {
   // console.debug("generateStoryMarkup", story);
 
   const hostName = story.getHostName();
-  return $(`
+
+return $(`
       <li id="${story.storyId}">
+        <i class="far fa-heart heart"></i>
+        <i class="fas fa-heart heart hidden"></i>
         <a href="${story.url}" target="a_blank" class="story-link">
           ${story.title}
         </a>
@@ -52,40 +55,116 @@ function putStoriesOnPage() {
 }
 
 
-// line  69: defining addStoryToPage() function, which takes the data from storyForm and adds it to the page
-// line  70: debugger
-// line  71: preventing default behavior
-// lines  73 - 75: grabbing author, title and url input from storyForm
-// line  76: grabbing username input from loginForm
-// line  77: saving to variable, 'storyData' the data grabbed from storyForm above 
-// line  79: calling addStory method to add newly-submitted story to storyList and
-//         saving it to the variable, 'story'
-// line  81: calling generateStoryMarkup() function on story, and saving it to
-//         the variable, '$storyHTML'
-// line  82: appending $storyHTML to $allStoriesList
-// line  84: resetting the storyForm
-// line  85: hiding the storyForm 
-// line  88: listening for clicks on StoryForm, and calling addStoryToPage() on submit
-async function addStoryToPage(evt) {
-  console.debug("addStoryToPage");
+/** displays stories added by the user under "my stories" */
+function putUserStoriesOnPage() {
+  console.debug("putUserStoriesOnPage");
+
+  $userStoriesList.empty();
+
+  if(currentUser.ownStories[0]) {
+    for (let story of currentUser.ownStories) {
+      const $story = generateStoryMarkup(story);
+      let deleteBtn = `<i class="fas fa-trash-alt trash"></i>`
+      $story.prepend(deleteBtn);
+      $userStoriesList.prepend($story);
+      if(currentUser.favorites.some((favorite) => favorite.storyId === story.storyId)) {
+        $story.children(".far").toggle();
+        $story.children(".fas.fa-heart").toggle();
+        };
+    }
+  } else {$userStoriesList.prepend(`<h4>Add new stories here</h4>`)};
+
+  $userStoriesList.show();
+}
+
+// takes user input from the storyForm (author, title, url) and adds it to the API as wells as
+// generates the HTML markup to be added to the "my stories" list by calling the putUserStoriesOnPage
+// function
+async function addNewStory(evt) {
+  console.debug("addNewStory");
   evt.preventDefault();
   
   const author = $("#story-author").val();
   const title = $("#story-title").val();
   const url = $("#story-url").val();
   const username = currentUser.username
-  const newStory = {author, title, url, username};
+  const storyData = {author, title, url, username};
   
-  const story = await storyList.addStory(currentUser, newStory);
-  
+  const story = await storyList.addStory(currentUser, storyData);
   const $storyHTML = generateStoryMarkup(story);
   $allStoriesList.append($storyHTML);
 
   $storyForm.trigger("reset");
-  $storyForm.hide();
+  $storyForm.show();
+  putUserstoriesOnPage();
 }
   
-$storyForm.on("submit", addStoryToPage);
+$storyForm.on("submit", addNewStory);
+
+
+// deletes a story from the "my stories" list, as well as the rest of the API
+async function deleteStory(evt) {
+  // console.debug("deleteStory");
+  const $closestLi = $(evt.target).closest("li");
+  const storyId = $closestLi.attr("id");
+
+  await storyList.removeStory(currentUser, storyId);
+  await putUserStoriesOnPage();
+}
+
+$userStoriesList.on("click", ".trash", deleteStory);
 
 
 
+// displays the "favorites" list on the "favorites" page
+function putFavoriteStoriesListOnPage() {
+  console.debug("putFavoriteStoriesListOnPage");
+ 
+  $favoriteStoriesList.empty();
+
+  if (currentUser.favorites[0]) {
+    for (let story of currentUser.favorites) {
+      const $story = generateStoryMarkup(story);
+      $favoriteStoriesList.append($story);
+      $story.children(".far").toggle();
+      $story.children(".fas.fa-heart").toggle();
+    }
+  } else {$favoriteStoriesList.append("<h4>Add favorite stories here</h4>")};  
+
+  $favoriteStoriesList.show();
+ 
+}
+
+// when the user clicks the star next to an article, the article is added to the 
+// user's "favorites" list
+async function addFavorite(evt) {
+  console.debug("addFavorite", evt);
+
+  if(!currentUser) {return};
+  $(evt.target).toggle();
+  $(evt.target).next(".fas.fa-heart").toggle();
+  const storyId = $(evt.target).parent("li").attr("id");
+  await currentUser.addToFavorites(storyId);
+};
+
+$("body").on("click", ".far", async function(evt) {
+  await addFavorite(evt);
+});
+
+// when the user clicks the star next to an article, the article is removed from the 
+// user's "favorites" list
+async function removeFavorite(evt) {
+  console.debug("removeFavorite", evt);
+
+  $(evt.target).toggle();
+  $(evt.target).prev(".far").toggle();
+  const storyId = $(evt.target).parent("li").attr("id");
+  await currentUser.removeFromFavorites(storyId);
+};
+
+$("body").on("click", ".fas.fa-heart", async function(evt) {
+  await removeFavorite(evt);
+});
+
+  
+  

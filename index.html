@@ -24,10 +24,10 @@
       href="https://use.fontawesome.com/releases/v5.3.1/css/all.css"
       integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU"
       crossorigin="anonymous">
-  <link rel="stylesheet" href="css/site.css">
-  <link rel="stylesheet" href="css/user.css">
-  <link rel="stylesheet" href="css/stories.css">
-  <link rel="stylesheet" href="css/nav.css">
+  <link rel="stylesheet" href="site.css">
+  <link rel="stylesheet" href="user.css">
+  <link rel="stylesheet" href="stories.css">
+  <link rel="stylesheet" href="nav.css">
 </head>
 
 <body>
@@ -40,7 +40,7 @@
   <div id="nav-main">
     <a class="nav-link" href="#" id="nav-submit-story"> submit </a> 
     <a class="nav-link" href="#" id="nav-favorites"> favorites </a> 
-    <a class="nav-link" href="#" id="nav-my-stories"> my stories </a> 
+    <a class="nav-link" href="#" id="nav-user-stories"> my stories </a> 
   </div> 
   <div class="nav-right">
     <a class="nav-link" href="#" id="nav-login">login/signup</a>
@@ -51,15 +51,17 @@
 
 <!-- add new story forms -->
 <form class="hidden" id="story-form"> 
-  <label for="story-author">author:</label> 
-  <input type="text" id="story-author">
+  <h2>Add a Story</h2>
+  <label for="story-author">AUTHOR:</label> 
+  <input type="text" id="story-author" placeholder="enter author name">
 
-  <label for="story-title">title:</label>
-  <input type="text" id="story-title">
+  <label for="story-title">TITLE:</label>
+  <input type="text" id="story-title" placeholder="enter title">
 
   <label for="story-url">URL:</label>
-  <input type="url" id="story-url">
-  <button type="submit" id="story-submit">Submit</button>
+  <input type="url" id="story-url" placeholder="enter URL">
+
+  <button type="submit" id="story-submit">submit</button>
 </form>
 
 <!-- area for stories (all stories, user stories, favorites) -->
@@ -70,6 +72,10 @@
 
   <!-- List of all stories -->
   <ol id="all-stories-list" class="stories-list"></ol>
+  <!-- favorite stories -->
+  <ol id="favorite-stories-list" class="hidden stories-list"></ol>
+  <!-- user's stories -->
+  <ol id="user-stories-list" class="hidden stories-list"></ol>
 
 </section>
 
@@ -118,11 +124,11 @@
 <script src="https://unpkg.com/jquery"></script>
 <script src="https://unpkg.com/axios/dist/axios.js"></script>
 
-<script src="js/models.js"></script>
-<script src="js/main.js"></script>
-<script src="js/nav.js"></script>
-<script src="js/user.js"></script>
-<script src="js/stories.js"></script>
+<script src="models.js"></script>
+<script src="main.js"></script>
+<script src="nav.js"></script>
+<script src="user.js"></script>
+<script src="stories.js"></script>
 
 </body>
 </html>
